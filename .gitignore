@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.pyc
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Data
+data/
+*.csv
+*.parquet
+
+# Temp
+tmp/
+temp/
+
+# Logs
+*.log
+
+# IDE
+.vscode/
+.idea/
+
+# Environment
+venv/
+.env/

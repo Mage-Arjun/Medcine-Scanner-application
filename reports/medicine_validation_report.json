@@ -1,0 +1,26 @@
+{
+  "total_records": 223644,
+  "valid_records": 208962,
+  "invalid_records": 14682,
+  "parsing_accuracy_pct": 93.4351,
+  "unique_ingredients": 3529,
+  "avg_ingredients_per_med": 1.895,
+  "max_ingredients_in_one": 19,
+  "top_flags": {
+    "TOO_SHORT_INGREDIENT:w": 14322,
+    "TOO_SHORT_INGREDIENT:v": 8627,
+    "TOO_SHORT_INGREDIENT:ml": 1278,
+    "UNKNOWN_UNIT:AU": 351,
+    "HIGH_INGREDIENT_COUNT": 87,
+    "TOO_SHORT_INGREDIENT:gm": 16,
+    "UNKNOWN_UNIT:i.u": 13,
+    "UNKNOWN_UNIT:LF": 8,
+    "UNKNOWN_UNIT:CU": 5,
+    "UNKNOWN_UNIT:PFU": 3,
+    "UNKNOWN_UNIT:OU": 3,
+    "UNKNOWN_UNIT:Millions": 3,
+    "UNKNOWN_UNIT:mspores": 3,
+    "UNKNOWN_UNIT:millionspores": 2,
+    "UNKNOWN_UNIT:10gm": 2
+  }
+}

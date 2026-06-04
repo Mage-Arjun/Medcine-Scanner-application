@@ -1,0 +1,28 @@
+Input: paracetmol
+Processed Query: paracetmol
+Expected Result: Paracetamol
+Predicted Result: Tendonil P 100mg/325mg Tablet
+Score: 4019.0000
+Success / Failure: Failure
+
+Input: azitromycin
+Processed Query: azitromycin
+Expected Result: Azithromycin
+Predicted Result: Azovax 200mg Oral Suspension
+Score: 1145.8000
+Success / Failure: Failure
+
+Input: amox clav
+Processed Query: amoxicillin clavulanic acid
+Expected Result: Amoxicillin Clavulanic Acid
+Predicted Result: DavaIndia Amoxycillin+Clavulanic Acid 500mg/125mg Tablet
+Score: 0.2889
+Success / Failure: Failure
+
+Input: pcm
+Processed Query: paracetamol
+Expected Result: Paracetamol
+Predicted Result: Tendonil P 100mg/325mg Tablet
+Score: 4094.0000
+Success / Failure: Failure
+

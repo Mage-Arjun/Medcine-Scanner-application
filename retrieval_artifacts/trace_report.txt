@@ -1,0 +1,24 @@
+--- Query: pcm ---
+Abbreviation Expansion: paracetamol
+Synonym Normalization: paracetamol
+OCR Correction (if applied): None
+Tokenization: ['paracetamol']
+
+--- Query: amox clav ---
+Abbreviation Expansion: amoxicillin clavulanic acid
+Synonym Normalization: amoxicillin clavulanic acid
+OCR Correction (if applied): None
+Tokenization: ['amoxicillin clavulanic acid']
+
+--- Query: paracetmol ---
+Abbreviation Expansion: paracetmol
+Synonym Normalization: paracetmol
+OCR Correction (if applied): None
+Tokenization: ['paracetmol']
+
+--- Query: azitromycin ---
+Abbreviation Expansion: azitromycin
+Synonym Normalization: azitromycin
+OCR Correction (if applied): None
+Tokenization: ['azitromycin']
+

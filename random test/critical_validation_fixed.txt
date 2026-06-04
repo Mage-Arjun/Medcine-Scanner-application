@@ -1,0 +1,28 @@
+Input: paracetmol
+Processed Query: paracetmol
+Expected Result: Paracetamol
+Predicted Result: Genericart Diclofenac+Paracetamol 50mg/325mg Tablet
+Score: 0.2700
+Success / Failure: Success
+
+Input: azitromycin
+Processed Query: azitromycin
+Expected Result: Azithromycin
+Predicted Result: Genericart Azithromycin 500mg Tablet
+Score: 0.2727
+Success / Failure: Success
+
+Input: amox clav
+Processed Query: amoxicillin clavulanic acid
+Expected Result: Amoxicillin Clavulanic Acid
+Predicted Result: DavaIndia Amoxycillin+Clavulanic Acid 500mg/125mg Tablet
+Score: 0.2889
+Success / Failure: Failure
+
+Input: pcm
+Processed Query: paracetamol
+Expected Result: Paracetamol
+Predicted Result: Genericart Diclofenac+Paracetamol 50mg/325mg Tablet
+Score: 0.3000
+Success / Failure: Success
+

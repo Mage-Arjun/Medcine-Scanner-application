@@ -49,12 +49,23 @@ def load_dict(path: str) -> Dict[str, str]:
 
 
 def _load_config_from_path(path: str) -> Dict[str, object]:
-    with open(path, "r", encoding="utf-8") as handle:
-        return json.load(handle)
+    try:
+        with open(path, "r", encoding="utf-8") as handle:
+            return json.load(handle)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {}
 
 
 def _weights_from_config(cfg: Dict[str, object]) -> Tuple[float, float, float, float]:
-    return DEFAULT_WEIGHTS
+    w = cfg.get("weights", {})
+    if not isinstance(w, dict):
+        return DEFAULT_WEIGHTS
+    return (
+        float(w.get("exact", EXACT_WEIGHT)),
+        float(w.get("fuzzy", FUZZY_WEIGHT)),
+        float(w.get("ingredient", INGREDIENT_WEIGHT)),
+        float(w.get("synonym", SYNONYM_WEIGHT)),
+    )
 
 
 def _normalize_text(text: str) -> str:
@@ -109,7 +120,7 @@ def search_fuzzy(query: str, df: pd.DataFrame, top_k: int = 5, threshold: float 
     df_res = df_res[df_res["match_score"] >= threshold]
     df_res = df_res.sort_values("match_score", ascending=False).head(top_k)
     df_res["match_type"] = "Fuzzy Match"
-    return df_res[["name", "generic_name", "match_type", "match_score", "fuzz_ratio"]]
+    return df_res
 
 
 def search_by_ingredient(tokens: List[str], df: pd.DataFrame) -> pd.DataFrame:
@@ -247,6 +258,9 @@ def retrieve_response(query: str, top_n: int = 10) -> Dict[str, object]:
                 "generic_name": None if pd.isna(row.get("generic_name")) else row.get("generic_name"),
                 "score": float(score) if pd.notna(score) else 0.0,
                 "match_type": row.get("match_type", ""),
+                "uses": None if pd.isna(row.get("uses")) else str(row.get("uses", "")),
+                "side_effects": None if pd.isna(row.get("side_effects")) else str(row.get("side_effects", "")),
+                "image_url": None if pd.isna(row.get("image_url")) else str(row.get("image_url", "")),
             }
         )
     return {"query": query, "normalized_query": processed_query, "results": results}

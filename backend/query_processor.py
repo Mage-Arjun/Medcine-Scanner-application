@@ -9,7 +9,6 @@ from backend.artifact_loader import load_abbreviation_dict, load_synonym_dict
 
 
 OCR_RULES = [
-    (r"i", "l"),
     (r"rn", "m"),
     (r"0", "o"),
     (r"1", "l"),

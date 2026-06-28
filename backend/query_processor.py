@@ -9,10 +9,12 @@ from backend.artifact_loader import load_abbreviation_dict, load_synonym_dict
 
 
 OCR_RULES = [
+    (r"(?<![a-z])0(?![0-9])", "o"),
+    (r"(?<![a-z])1(?![0-9])", "l"),
+    (r"(?<![a-z])5(?![0-9])", "s"),
+    (r"(?<![a-z])8(?![0-9])", "b"),
     (r"rn", "m"),
-    (r"0", "o"),
-    (r"1", "l"),
-    (r"5", "s"),
+    (r"cer", "par"),
 ]
 
 

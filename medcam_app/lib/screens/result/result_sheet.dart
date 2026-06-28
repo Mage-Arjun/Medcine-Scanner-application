@@ -1,7 +1,10 @@
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:medcam_app/models/medicine.dart';
 import 'package:medcam_app/theme/app_theme.dart';
+import 'package:medcam_app/widgets/confidence_indicator.dart';
+import 'package:medcam_app/widgets/status_badge.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class ResultSheet extends StatelessWidget {
@@ -9,193 +12,283 @@ class ResultSheet extends StatelessWidget {
 
   const ResultSheet({super.key, required this.result});
 
+  List<String> _parseChips(String? text) {
+    if (text == null || text.isEmpty) return [];
+    final cleaned = text
+        .replaceAll(RegExp(r'\.\s*'), ',')
+        .replaceAll(RegExp(r';\s*'), ',')
+        .replaceAll(RegExp(r'\n'), ',');
+    return cleaned
+        .split(',')
+        .map((s) => s.trim())
+        .where((s) => s.isNotEmpty)
+        .toList();
+  }
+
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+    final useChips = _parseChips(result.uses);
+    final sideEffectChips = _parseChips(result.sideEffects);
+
     return DraggableScrollableSheet(
-      initialChildSize: 0.7,
+      initialChildSize: 0.75,
       minChildSize: 0.4,
-      maxChildSize: 0.9,
+      maxChildSize: 0.95,
       builder: (context, scrollController) {
-        return Container(
-          decoration: const BoxDecoration(
-            color: AppColors.bgBase,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
+        return ClipRRect(
+          borderRadius: const BorderRadius.vertical(
+            top: Radius.circular(AppRadius.xl),
           ),
-          child: Column(
-            children: [
-              // Handle
-              Padding(
-                padding: const EdgeInsets.only(top: 8, bottom: 4),
-                child: Container(
-                  width: 32,
-                  height: 3,
-                  decoration: BoxDecoration(
-                    color: AppColors.borderAccent,
-                    borderRadius: BorderRadius.circular(2),
+          child: BackdropFilter(
+            filter: ui.ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+            child: Container(
+              decoration: BoxDecoration(
+                color: AppColors.glass(brightness),
+                border: Border(
+                  top: BorderSide(
+                    color: AppColors.glassBorderColor(brightness),
                   ),
                 ),
               ),
-              Expanded(
-                child: ListView(
-                  controller: scrollController,
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-                  children: [
-                    // Header
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+              child: Column(
+                children: [
+                  // ── Handle ───────────────────────────────────────────────
+                  Padding(
+                    padding: const EdgeInsets.only(top: AppSpacing.sm),
+                    child: Container(
+                      width: 48,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: AppColors.borderColor(brightness),
+                        borderRadius: BorderRadius.circular(AppRadius.pill),
+                      ),
+                    ),
+                  ),
+
+                  // ── Scrollable Content ───────────────────────────────────
+                  Expanded(
+                    child: ListView(
+                      controller: scrollController,
+                      padding: const EdgeInsets.fromLTRB(
+                        AppSpacing.xxl,
+                        AppSpacing.lg,
+                        AppSpacing.xxl,
+                        AppSpacing.xxxl,
+                      ),
                       children: [
-                        Container(
-                          width: 64,
-                          height: 64,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(4),
-                            border: Border.all(color: AppColors.amberGlow, width: 1),
-                            color: AppColors.bgRaised,
+                        // ── Hero Image ─────────────────────────────────────
+                        if (result.imageUrl != null &&
+                            result.imageUrl!.isNotEmpty)
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(AppRadius.xl),
+                            child: Container(
+                              height: 180,
+                              width: double.infinity,
+                              decoration: BoxDecoration(
+                                color: AppColors.raised(brightness),
+                              ),
+                              child: Image.network(
+                                result.imageUrl!,
+                                fit: BoxFit.contain,
+                                errorBuilder: (_, _, _) => _heroPlaceholder(brightness),
+                              ),
+                            ),
+                          )
+                        else
+                          _heroPlaceholder(brightness),
+
+                        const SizedBox(height: AppSpacing.xxl),
+
+                        // ── Medicine Name ──────────────────────────────────
+                        Text(
+                          result.medicine,
+                          style: Theme.of(context).textTheme.displayMedium,
+                        ),
+
+                        // ── Generic Name Chip ──────────────────────────────
+                        if (result.genericName != null &&
+                            result.genericName!.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(top: AppSpacing.sm),
+                            child: StatusBadge(
+                              label: result.genericName!,
+                              type: BadgeType.info,
+                              fontSize: 12,
+                            ),
                           ),
-                          child: result.imageUrl != null && result.imageUrl!.isNotEmpty
-                              ? ClipRRect(
-                                  borderRadius: BorderRadius.circular(3),
-                                  child: Image.network(
-                                    result.imageUrl!,
-                                    fit: BoxFit.contain,
-                                    errorBuilder: (_, __, ___) =>
-                                        const Icon(Icons.medication, color: AppColors.inkFaint),
-                                  ),
+
+                        const SizedBox(height: AppSpacing.lg),
+
+                        // ── Match Info Row ─────────────────────────────────
+                        Row(
+                          children: [
+                            StatusBadge(
+                              label: result.matchType,
+                              type: BadgeType.info,
+                            ),
+                            const SizedBox(width: AppSpacing.md),
+                            Text(
+                              'Confidence',
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: AppSpacing.lg),
+
+                        // ── Confidence Ring ────────────────────────────────
+                        Center(
+                          child: ConfidenceIndicator(
+                            score: result.score,
+                            size: 80,
+                            strokeWidth: 6,
+                          ),
+                        ),
+
+                        const SizedBox(height: AppSpacing.xxxl),
+                        Divider(color: AppColors.borderColor(brightness)),
+                        const SizedBox(height: AppSpacing.lg),
+
+                        // ── Uses Section ───────────────────────────────────
+                        _buildSection(
+                          context,
+                          title: 'Uses',
+                          icon: Icons.healing_rounded,
+                          child: useChips.isNotEmpty
+                              ? Wrap(
+                                  spacing: AppSpacing.sm,
+                                  runSpacing: AppSpacing.sm,
+                                  children: useChips
+                                      .map((chip) => _buildChip(chip, AppColors.primary(brightness), brightness))
+                                      .toList(),
                                 )
-                              : const Icon(Icons.medication, color: AppColors.inkFaint),
+                              : _emptyState(brightness, 'No uses information available'),
                         ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                result.medicine,
-                                style: GoogleFonts.cormorantGaramond(
-                                  fontSize: 22,
-                                  color: AppColors.ink,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              if (result.genericName != null)
-                                Padding(
-                                  padding: const EdgeInsets.only(top: 4),
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                    decoration: BoxDecoration(
-                                      color: AppColors.amberFaint,
-                                      borderRadius: BorderRadius.circular(3),
-                                    ),
-                                    child: Text(
-                                      result.genericName!,
-                                      style: GoogleFonts.ibmPlexMono(
-                                        fontSize: 11,
-                                        color: AppColors.amberGlow,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              const SizedBox(height: 6),
-                              Row(
-                                children: [
-                                  _matchBadge(result.matchType),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    '${(result.score * 100).toStringAsFixed(0)}%',
-                                    style: GoogleFonts.ibmPlexMono(
-                                      fontSize: 10,
-                                      color: AppColors.inkFaint,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
+
+                        const SizedBox(height: AppSpacing.xxl),
+
+                        // ── Side Effects Section ───────────────────────────
+                        _buildSection(
+                          context,
+                          title: 'Side Effects',
+                          icon: Icons.warning_amber_rounded,
+                          child: sideEffectChips.isNotEmpty
+                              ? Wrap(
+                                  spacing: AppSpacing.sm,
+                                  runSpacing: AppSpacing.sm,
+                                  children: sideEffectChips
+                                      .map((chip) => _buildChip(
+                                          chip, AppColors.secondary(brightness), brightness))
+                                      .toList(),
+                                )
+                              : _emptyState(brightness, 'No side effects information available'),
+                        ),
+
+                        const SizedBox(height: AppSpacing.xxxl),
+
+                        // ── View Details Button ────────────────────────────
+                        if (result.imageUrl != null &&
+                            result.imageUrl!.isNotEmpty)
+                          SizedBox(
+                            width: double.infinity,
+                            height: 52,
+                            child: OutlinedButton.icon(
+                              onPressed: () => _launchUrl(result.imageUrl!),
+                              icon: const Icon(Icons.open_in_new_rounded, size: 18),
+                              label: const Text('VIEW DETAILS'),
+                            ),
                           ),
-                        ),
                       ],
                     ),
-
-                    const SizedBox(height: 20),
-                    const Divider(),
-
-                    // Uses
-                    _dataSection('USES', result.uses),
-
-                    const SizedBox(height: 16),
-                    const Divider(),
-
-                    // Side Effects
-                    _dataSection('SIDE EFFECTS', result.sideEffects),
-
-                    const SizedBox(height: 24),
-
-                    // Footer buttons
-                    if (result.imageUrl != null && result.imageUrl!.isNotEmpty)
-                      SizedBox(
-                        width: double.infinity,
-                        child: OutlinedButton.icon(
-                          onPressed: () => _launchUrl(result.imageUrl!),
-                          icon: const Icon(Icons.open_in_new, size: 16),
-                          label: const Text('VIEW ON 1MG'),
-                        ),
-                      ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         );
       },
     );
   }
 
-  Widget _dataSection(String label, String? value) {
+  Widget _buildSection(
+    BuildContext context, {
+    required String title,
+    required IconData icon,
+    required Widget child,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: GoogleFonts.ibmPlexMono(
-            fontSize: 10,
-            color: AppColors.inkFaint,
-            letterSpacing: 0.15,
-          ),
+        Row(
+          children: [
+            Icon(icon, size: 18, color: AppColors.primary(Theme.of(context).brightness)),
+            const SizedBox(width: AppSpacing.sm),
+            Text(
+              title,
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
+          ],
         ),
-        const SizedBox(height: 6),
-        if (value != null && value.isNotEmpty)
-          Text(
-            value,
-            style: GoogleFonts.ibmPlexMono(
-              fontSize: 13,
-              color: AppColors.inkMuted,
-              height: 1.5,
-            ),
-          )
-        else
-          Text(
-            '—',
-            style: GoogleFonts.ibmPlexMono(
-              fontSize: 13,
-              color: AppColors.inkFaint,
-            ),
-          ),
+        const SizedBox(height: AppSpacing.md),
+        child,
       ],
     );
   }
 
-  Widget _matchBadge(String matchType) {
+  Widget _buildChip(String label, Color color, Brightness brightness) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.sm,
+      ),
       decoration: BoxDecoration(
-        color: AppColors.amberGlow.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(3),
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(AppRadius.sm),
+        border: Border.all(
+          color: color.withValues(alpha: 0.3),
+          width: 1,
+        ),
       ),
       child: Text(
-        matchType.toUpperCase(),
-        style: GoogleFonts.ibmPlexMono(
-          fontSize: 9,
-          color: AppColors.amberGlow,
-          letterSpacing: 0.1,
+        label,
+        style: GoogleFonts.inter(
+          fontSize: 13,
+          fontWeight: FontWeight.w500,
+          color: color,
+        ),
+      ),
+    );
+  }
+
+  Widget _emptyState(Brightness brightness, String message) {
+    return Text(
+      message,
+      style: GoogleFonts.inter(
+        fontSize: 13,
+        color: AppColors.textFaint(brightness),
+      ),
+    );
+  }
+
+  Widget _heroPlaceholder(Brightness brightness) {
+    return Container(
+      height: 180,
+      width: double.infinity,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            AppColors.primaryFaint(brightness),
+            AppColors.raised(brightness),
+          ],
+        ),
+      ),
+      child: Center(
+        child: Icon(
+          Icons.medication_rounded,
+          color: AppColors.primaryDim(brightness),
+          size: 48,
         ),
       ),
     );

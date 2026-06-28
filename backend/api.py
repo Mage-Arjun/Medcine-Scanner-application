@@ -19,7 +19,7 @@ from backend.artifact_loader import (
 )
 from backend.identifier import identify
 from backend.retrieval_engine import retrieve_response
-from backend.schemas import IdentifyRequest, SearchRequest, SearchResponse
+from backend.schemas import IdentifyRequest, OcrBlock, OcrRequest, OcrResponse, SearchRequest, SearchResponse
 
 
 logging.basicConfig(level=logging.INFO)
@@ -70,6 +70,8 @@ app.add_middleware(
 
 @app.exception_handler(Exception)
 def global_exception_handler(request: Request, exc: Exception) -> object:
+    if isinstance(exc, HTTPException):
+        raise exc
     logger.exception("Unhandled exception on %s %s", request.method, request.url.path)
     from fastapi.responses import JSONResponse
     return JSONResponse(status_code=500, content={"detail": "Internal server error"})
@@ -118,3 +120,24 @@ def search_by_ocr(request: IdentifyRequest) -> SearchResponse:
     latency_ms = (time.perf_counter() - started) * 1000
     logger.info("identify ocr_blocks=%s top_n=%s latency_ms=%.2f", len(blocks), request.top_n, latency_ms)
     return SearchResponse(**response)
+
+
+@app.post("/ocr", response_model=OcrResponse)
+def ocr_extract(request: OcrRequest) -> OcrResponse:
+    from backend.ocr import ocr_from_image
+
+    started = time.perf_counter()
+    try:
+        raw_blocks = ocr_from_image(request.image)
+    except Exception as exc:
+        logger.exception("OCR failed: %s", exc)
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+    latency_ms = (time.perf_counter() - started) * 1000
+    logger.info("ocr blocks=%s latency_ms=%.2f", len(raw_blocks), latency_ms)
+
+    blocks = [
+        OcrBlock(text=b["text"], confidence=b["confidence"], bounding_box=b.get("bounding_box"))
+        for b in raw_blocks
+    ]
+    return OcrResponse(blocks=blocks)

@@ -28,7 +28,7 @@ class HistoryNotifier extends StateNotifier<List<HistoryEntry>> {
 
   Future<void> clear() async {
     await _service.clear();
-    state = [];
+    state = await _service.load();
   }
 }
 

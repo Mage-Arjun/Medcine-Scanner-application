@@ -37,3 +37,11 @@ class OcrBlock(BaseModel):
 class IdentifyRequest(BaseModel):
     ocr_blocks: List[OcrBlock] = Field(..., min_length=1)
     top_n: int = Field(default=5, ge=1, le=100)
+
+
+class OcrRequest(BaseModel):
+    image: str = Field(..., min_length=1)
+
+
+class OcrResponse(BaseModel):
+    blocks: List[OcrBlock]

@@ -89,7 +89,21 @@ def parse_page(url, html):
         content = section.find(class_=lambda c: c and "content" in c)
         return clean_text((content or section).get_text("\n"))
 
+    # Priority 1: <link rel="preload" as="image"> (actual product photo)
+    preload = soup.find("link", {"rel": "preload", "as": "image"})
+    # Priority 2: og:image meta tag
+    og_image = soup.find("meta", {"property": "og:image"})
+    # Priority 3: first product image img tag (old approach, often a placeholder)
     img = soup.find("img", src=lambda s: s and "onemg" in s)
+
+    if preload and preload.get("href"):
+        image_url = preload["href"]
+    elif og_image and og_image.get("content"):
+        image_url = og_image["content"]
+    elif img:
+        image_url = img["src"]
+    else:
+        image_url = None
 
     return {
         "url": url,
@@ -98,7 +112,7 @@ def parse_page(url, html):
         "composition": get_after_label("SALT COMPOSITION"),
         "uses": extract_section("uses_and_benefits"),
         "side_effects": extract_section("side_effects"),
-        "image_url": img["src"] if img else None,
+        "image_url": image_url,
     }
 
 

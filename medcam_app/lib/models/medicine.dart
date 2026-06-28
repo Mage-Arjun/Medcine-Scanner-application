@@ -79,3 +79,23 @@ class OcrBlock {
     if (boundingBox != null) 'bounding_box': boundingBox,
   };
 }
+
+class OcrResponse {
+  final List<OcrBlock> blocks;
+
+  OcrResponse({required this.blocks});
+
+  factory OcrResponse.fromJson(Map<String, dynamic> json) {
+    return OcrResponse(
+      blocks: (json['blocks'] as List)
+          .map((e) => OcrBlock(
+                text: e['text'] as String,
+                confidence: (e['confidence'] as num).toDouble(),
+                boundingBox: e['bounding_box'] as Map<String, dynamic>?,
+              ))
+          .toList(),
+    );
+  }
+
+  String get combinedText => blocks.map((b) => b.text).join(' ');
+}
